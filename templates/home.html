@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム{% endblock %}
+
+{% block content %}
+<div class="home-grid">
+    <a href="{{ url_for('index') }}" class="home-card">
+        <h2>タスク一覧</h2>
+        <p>現在のタスクを確認・編集できます。</p>
+    </a>
+    <a href="{{ url_for('schedule') }}" class="home-card">
+        <h2>スケジュール</h2>
+        <p>カレンダーで予定を管理できます。</p>
+    </a>
+</div>
+{% endblock %}

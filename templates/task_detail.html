@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}タスク詳細{% endblock %}
+
+{% block content %}
+<div class="detail-page">
+    <h2>{{ task.title }}</h2>
+    <p><strong>締め切り:</strong> {{ task.deadline or '設定なし' }}</p>
+    <p><strong>メモ:</strong></p>
+    <div class="task-memo">{{ task.memo or 'メモはありません' }}</div>
+    <p><strong>ステータス:</strong> {{ '完了' if task.done else '未完了' }}</p>
+    <div class="detail-actions">
+        <a href="{{ url_for('edit', id=task.id) }}" class="btn btn-primary">編集</a>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">タスク一覧へ戻る</a>
+    </div>
+</div>
+{% endblock %}

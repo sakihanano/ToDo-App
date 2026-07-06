@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}シンプル Todo{% endblock %}
+
+{% block content %}
+<div class="simple-page">
+    <section class="simple-form">
+        <h2>タスクを追加</h2>
+        <form id="task-form">
+            <div class="form-group">
+                <label for="title">タスク名</label>
+                <input type="text" id="title" name="title" placeholder="タスク名を入力" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="deadline">締め切り日</label>
+                <input type="date" id="deadline" name="deadline">
+            </div>
+            <div class="form-group">
+                <label for="memo">メモ</label>
+                <textarea id="memo" name="memo" rows="3" placeholder="メモを入力"></textarea>
+            </div>
+            <button type="submit">追加</button>
+        </form>
+    </section>
+
+    <section class="simple-list">
+        <div class="simple-list-header">
+            <label>
+                <input type="checkbox" id="hide-completed">
+                完了済みタスクを隠す
+            </label>
+            <h2>タスク一覧</h2>
+        </div>
+        <ul id="task-list"></ul>
+    </section>
+</div>
+
+<script>
+function formatDeadline(deadline) {
+    return `締め切り: ${deadline}`;
+}
+
+function getDeadlineStatus(deadline) {
+    if (!deadline) return '';
+    const today = new Date();
+    const dueDate = new Date(deadline + 'T23:59:59');
+    const diffMs = dueDate - today;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'overdue';
+    if (diffDays === 0) return 'today';
+    if (diffDays <= 3) return 'soon';
+    return 'normal';
+}
+
+async function fetchTasks() {
+    const res = await fetch('/api/tasks');
+    const tasks = await res.json();
+    const list = document.getElementById('task-list');
+    const hideCompleted = document.getElementById('hide-completed').checked;
+    list.innerHTML = '';
+
+    tasks
+        .filter(task => !hideCompleted || !task.done)
+        .forEach(task => {
+            const item = document.createElement('li');
+            item.className = 'task-item';
+
+            const status = task.deadline ? getDeadlineStatus(task.deadline) : 'normal';
+            if (status !== 'normal') {
+                item.classList.add(status);
+            }
+
+            const main = document.createElement('div');
+            main.className = 'task-main';
+
+            const titleLink = document.createElement('a');
+            titleLink.href = `/task/${task.id}`;
+            titleLink.className = 'task-title';
+            titleLink.textContent = task.title;
+            main.appendChild(titleLink);
+
+            if (task.memo) {
+                const memoSpan = document.createElement('div');
+                memoSpan.className = 'task-memo-snippet';
+                memoSpan.textContent = task.memo;
+                main.appendChild(memoSpan);
+            }
+
+            if (task.deadline) {
+                const deadlineSpan = document.createElement('span');
+                deadlineSpan.className = `task-deadline ${status}`;
+                deadlineSpan.textContent = formatDeadline(task.deadline);
+                main.appendChild(deadlineSpan);
+            }
+
+            item.appendChild(main);
+
+            const actions = document.createElement('div');
+            actions.className = 'task-actions';
+
+            const editButton = document.createElement('button');
+            editButton.type = 'button';
+            editButton.textContent = '編集';
+            editButton.className = 'edit-btn';
+            editButton.addEventListener('click', () => {
+                window.location.href = `/edit/${task.id}`;
+            });
+            actions.appendChild(editButton);
+
+            const toggleButton = document.createElement('button');
+            toggleButton.type = 'button';
+            toggleButton.textContent = task.done ? '未完了に戻す' : '完了にする';
+            toggleButton.className = 'toggle-btn';
+            toggleButton.addEventListener('click', async () => {
+                await fetch(`/toggle/${task.id}`);
+                await fetchTasks();
+            });
+            actions.appendChild(toggleButton);
+
+            if (task.done) {
+                item.classList.add('completed');
+            }
+
+            item.appendChild(actions);
+            list.appendChild(item);
+        });
+}
+
+async function addTask(event) {
+    event.preventDefault();
+    const title = document.getElementById('title').value.trim();
+    const deadline = document.getElementById('deadline').value;
+    if (!title) return;
+
+    const formData = new FormData();
+    formData.append('title', title);
+    if (deadline) {
+        formData.append('deadline', deadline);
+    }
+
+    await fetch('/add', {
+        method: 'POST',
+        body: formData,
+    });
+
+    document.getElementById('title').value = '';
+    document.getElementById('deadline').value = '';
+    document.getElementById('memo').value = '';
+    await fetchTasks();
+}
+
+document.getElementById('task-form').addEventListener('submit', addTask);
+document.getElementById('hide-completed').addEventListener('change', fetchTasks);
+fetchTasks();
+</script>
+{% endblock %}

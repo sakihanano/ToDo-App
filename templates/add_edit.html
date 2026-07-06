@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <h2>{{ title }}</h2>
+    
+    <form method="POST" class="todo-form">
+        <div class="form-group">
+            <label for="title">タスクのタイトル</label>
+            <input type="text" 
+                   id="title" 
+                   name="title" 
+                   placeholder="例: 買い物に行く"
+                   value="{% if todo %}{{ todo.title }}{% endif %}"
+                   required
+                   autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="deadline">締め切り日</label>
+            <input type="date"
+                   id="deadline"
+                   name="deadline"
+                   value="{% if todo and todo.deadline %}{{ todo.deadline }}{% endif %}">
+        </div>
+
+        <div class="form-group">
+            <label for="memo">メモ</label>
+            <textarea id="memo" name="memo" rows="4" placeholder="タスクの詳細や補足を入力できます">{% if todo %}{{ todo.memo }}{% endif %}</textarea>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">保存</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">キャンセル</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

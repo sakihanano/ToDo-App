@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}スケジュール{% endblock %}
+
+{% block content %}
+<div class="schedule-page">
+    <h2>カレンダー</h2>
+    <p>タスクの締め切りをカレンダーで確認できます。</p>
+
+    <div class="calendar-controls">
+        <button id="prev-month" class="btn btn-secondary">前の月</button>
+        <div id="month-label" class="month-label"></div>
+        <button id="next-month" class="btn btn-secondary">次の月</button>
+    </div>
+
+    <div id="calendar" class="calendar-grid"></div>
+</div>
+
+<script>
+const today = new Date();
+let currentMonth = today.getMonth();
+let currentYear = today.getFullYear();
+let tasksCache = [];
+
+function formatMonthYear(year, month) {
+    return `${year}年 ${month + 1}月`;
+}
+
+function buildTasksByDate(tasks) {
+    return tasks.reduce((map, task) => {
+        if (!task.deadline) return map;
+        map[task.deadline] = map[task.deadline] || [];
+        map[task.deadline].push(task);
+        return map;
+    }, {});
+}
+
+function renderCalendar() {
+    const calendar = document.getElementById('calendar');
+    const monthLabel = document.getElementById('month-label');
+    const tasksByDate = buildTasksByDate(tasksCache);
+    calendar.innerHTML = '';
+    monthLabel.textContent = formatMonthYear(currentYear, currentMonth);
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const startOffset = (firstDay + 6) % 7; // Monday-start calendar
+
+    const weekDays = ['月','火','水','木','金','土','日'];
+    weekDays.forEach(dayName => {
+        const header = document.createElement('div');
+        header.className = 'calendar-header-cell';
+        header.textContent = dayName;
+        calendar.appendChild(header);
+    });
+
+    for (let i = 0; i < startOffset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-cell empty';
+        calendar.appendChild(empty);
+    }
+
+    for (let date = 1; date <= daysInMonth; date++) {
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+        if (dateStr === today.toISOString().slice(0, 10)) {
+            cell.classList.add('today');
+        }
+
+        const title = document.createElement('div');
+        title.className = 'calendar-date';
+        title.textContent = date;
+        cell.appendChild(title);
+
+        const tasksForDay = tasksByDate[dateStr] || [];
+        tasksForDay.forEach(task => {
+            const taskEl = document.createElement('div');
+            taskEl.className = 'calendar-task';
+            taskEl.textContent = task.title;
+            taskEl.addEventListener('click', () => {
+                window.location.href = `/task/${task.id}`;
+            });
+            cell.appendChild(taskEl);
+        });
+
+        if (!tasksForDay.length) {
+            const emptyLabel = document.createElement('div');
+            emptyLabel.className = 'calendar-empty';
+            emptyLabel.textContent = '予定なし';
+            cell.appendChild(emptyLabel);
+        }
+
+        calendar.appendChild(cell);
+    }
+}
+
+async function loadCalendar() {
+    const res = await fetch('/api/tasks');
+    tasksCache = await res.json();
+    renderCalendar();
+}
+
+document.getElementById('prev-month').addEventListener('click', () => {
+    currentMonth -= 1;
+    if (currentMonth < 0) {
+        currentYear -= 1;
+        currentMonth = 11;
+    }
+    renderCalendar();
+});
+
+document.getElementById('next-month').addEventListener('click', () => {
+    currentMonth += 1;
+    if (currentMonth > 11) {
+        currentYear += 1;
+        currentMonth = 0;
+    }
+    renderCalendar();
+});
+
+loadCalendar();
+</script>
+{% endblock %}

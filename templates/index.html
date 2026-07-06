@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Todo リスト{% endblock %}
+
+{% block content %}
+<div class="todo-section">
+    <div class="action-buttons">
+        <a href="{{ url_for('add') }}" class="btn btn-add">+ 新しいタスク</a>
+    </div>
+    
+    {% if tasks %}
+        <div class="todo-list">
+            {% for task in tasks %}
+                <div class="todo-item {% if task.done %}completed{% endif %}">
+                    <div class="todo-content">
+                        <input type="checkbox" 
+                               {% if task.done %}checked{% endif %}
+                               onchange="window.location.href='{{ url_for('toggle', id=task.id) }}'">
+                        <div class="todo-text">
+                            <h3><a href="{{ url_for('task_detail', id=task.id) }}">{{ task.title }}</a></h3>
+                            <div class="todo-meta">
+                                {% if task.deadline %}
+                                    <small class="todo-deadline">締め切り: {{ task.deadline }}</small>
+                                {% endif %}
+                                {% if task.deadline_status %}
+                                    <span class="deadline-label {% if task.is_overdue %}overdue{% elif task.is_today %}today{% endif %}">{{ task.deadline_status }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="todo-actions">
+                        <a href="{{ url_for('edit', id=task.id) }}" class="btn btn-small btn-edit">編集</a>
+                        <a href="{{ url_for('delete', id=task.id) }}" class="btn btn-small btn-delete" onclick="return confirm('本当に削除しますか？');">削除</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>📭 タスクがありません</p>
+            <a href="{{ url_for('add') }}" class="btn btn-add">タスクを作成</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
