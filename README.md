@@ -85,6 +85,23 @@ heroku open
 4. Start Command に `gunicorn app:app`
 5. Python バージョンは `python-3.11.18` を使用
 
+#### Azure Web App への手順例
+Azure CLI が無い場合でも、GitHub Actions でデプロイできます。以下の手順で設定してください。
+
+1. Azure Portal で Web App を作成
+   - ランタイム: Python 3.11
+   - OS: Linux 推奨
+2. Azure Portal で「発行プロファイル」をダウンロード
+3. GitHub のリポジトリに `AZURE_WEBAPP_PUBLISH_PROFILE` シークレットを追加
+   - secret 名: `AZURE_WEBAPP_PUBLISH_PROFILE`
+   - 値: ダウンロードした発行プロファイルの XML 内容
+4. GitHub Actions で `AZURE_WEBAPP_NAME` シークレットを追加
+   - secret 名: `AZURE_WEBAPP_NAME`
+   - 値: Azure Web App のアプリ名
+5. `master` ブランチにプッシュすると自動デプロイされます
+
+> 注意: SQLite は Web App のファイルシステムに配置されますが、App Service では永続化に制約があります。実運用では Azure Database for PostgreSQL / MySQL に移行してください。
+
 ## 💡 主な機能
 
 - ✅ **タスク一覧表示** - 作成したタスクを一覧で表示
