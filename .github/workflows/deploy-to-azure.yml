@@ -1,0 +1,47 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create deployment package
+      run: |
+        mkdir -p deploy
+        cp -r . deploy/
+        cd deploy
+        rm -rf .git .github venv __pycache__ .pytest_cache todos.db
+        cd ..
+        zip -r deploy.zip deploy/
+
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'ToDo-App'
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+        package: './deploy.zip'
+
+    - name: Verify deployment
+      run: |
+        echo "Deployment to Azure App Service completed successfully!"
+        echo "App URL: https://ToDo-App.azurewebsites.net"

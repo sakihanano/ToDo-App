@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Azure 接続・デプロイ入門</title>
+  <style>
+    :root{--bg:#eef3f6;--paper:#fff;--ink:#13202a;--muted:#657382;--line:#d7e0e7;--navy:#132f49;--blue:#1769aa;--blue-soft:#e6f1fb;--green:#147a5a;--green-soft:#e5f5ee;--amber:#98640f;--amber-soft:#fff2d6;--red:#b42318;--red-soft:#fde8e7;--shadow:0 16px 38px rgba(19,32,42,.09);--radius:8px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:linear-gradient(90deg,rgba(19,47,73,.04) 1px,transparent 1px),linear-gradient(0deg,rgba(19,47,73,.04) 1px,transparent 1px),linear-gradient(135deg,#f8fbfc,var(--bg));background-size:36px 36px,36px 36px,auto;font-family:"Yu Gothic UI","Meiryo","Noto Sans JP",sans-serif;line-height:1.72}a{color:var(--blue);text-decoration:none;overflow-wrap:anywhere}a:hover{text-decoration:underline}code,pre{font-family:"Cascadia Mono","Consolas",monospace}code{padding:2px 6px;border-radius:4px;background:#eef3f7;color:#0e2b3d;font-size:.92em}pre{margin:12px 0 0;padding:14px 16px;overflow-x:auto;border-radius:var(--radius);color:#e8f2f8;background:#102331;line-height:1.55;font-size:13px}
+    .page{max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+    .hero{padding:34px;color:#f8fbfd;background:linear-gradient(145deg,#132f49,#1769aa 55%,#147a5a);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px}.eyebrow{display:inline-block;margin-bottom:14px;padding:4px 10px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.92);font-size:13px;font-weight:700}h1{margin:0 0 14px;font-size:clamp(28px,4vw,44px);line-height:1.18}.lead{max-width:760px;margin:0;color:rgba(248,251,253,.88);font-size:16px}
+    .toc{position:sticky;top:0;z-index:2;margin:0 0 18px;padding:10px;border:1px solid var(--line);border-radius:var(--radius);background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}.toc nav{display:flex;gap:8px;flex-wrap:wrap}.toc a{padding:6px 10px;border-radius:999px;color:var(--navy);background:#f4f7f9;font-size:13px;font-weight:700}.toc a:hover{background:var(--blue-soft);color:var(--blue)}
+    .panel{margin:18px 0;padding:26px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.panel h2{margin:0 0 14px;font-size:22px;color:var(--navy)}.panel h3{margin:18px 0 8px;font-size:17px;color:var(--navy)}.panel-sub{margin:0 0 14px;color:var(--muted);font-size:14px}
+    .cols-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .tag{display:inline-flex;align-items:center;min-height:24px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}.tag.blue{background:var(--blue-soft);color:var(--blue)}.tag.green{background:var(--green-soft);color:var(--green)}.tag.amber{background:var(--amber-soft);color:var(--amber)}.tag.red{background:var(--red-soft);color:var(--red)}
+    table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;font-size:14px}th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{color:var(--navy);background:#edf3f8;font-size:13px;white-space:nowrap}tr:last-child td{border-bottom:0}tr:nth-child(even) td{background:#fafcfd}
+    .callout{padding:16px;border:1px solid;border-radius:var(--radius)}.callout strong{display:block;margin-bottom:6px}.callout p,.callout ul,.callout ol{margin:0;color:var(--muted);font-size:14px}.callout.blue{border-color:#bdd7ec;background:var(--blue-soft)}.callout.amber{border-color:#e7c77d;background:var(--amber-soft)}.callout.red{border-color:#f1b8b4;background:var(--red-soft)}.callout.green{border-color:#bde3cf;background:var(--green-soft)}
+    .step-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.step-card{padding:16px;background:#fafcfd;border:1px solid var(--line);border-radius:var(--radius)}.num{display:inline-grid;place-items:center;width:30px;height:30px;margin-bottom:10px;border-radius:50%;color:#fff;background:var(--blue);font-weight:700;font-size:13px}.step-card h3{margin:0 0 8px;font-size:15px}.step-card p{margin:0;color:var(--muted);font-size:13px}
+    .footer{margin-top:28px;color:var(--muted);text-align:center;font-size:13px}
+    @media(max-width:980px){.cols-2,.step-grid{grid-template-columns:1fr}.toc{position:static}}
+    @media(max-width:640px){.page{padding:16px 12px 40px}.hero,.panel{padding:20px}table{display:block;overflow-x:auto;white-space:nowrap}}
+    @media print{body{background:#fff}.page{max-width:none;padding:0}.hero,.panel,.step-card{box-shadow:none;break-inside:avoid}.toc{display:none}}
+  </style>
+</head>
+<body>
+  <main class="page">
+
+    <header class="hero">
+      <div class="eyebrow">新規メンバー向け / 2026-07-01</div>
+      <h1>Azure 接続・デプロイ入門</h1>
+      <p class="lead">このチームのAzure環境に接続し、アプリをデプロイするまでの手順と知っておくべきルールを一枚にまとめた資料です。</p>
+    </header>
+
+    <div class="toc"><nav aria-label="目次"><a href="#prereq">前提準備</a><a href="#login">Azure接続</a><a href="#landscape">環境一覧</a><a href="#deploy">デプロイ手順</a><a href="#naming">命名規則</a><a href="#rules">守るルール</a><a href="#trouble">トラブル時</a><a href="#ref">参照資料</a></nav></div>
+
+    <!-- 1. 前提準備 -->
+    <section class="panel" id="prereq">
+      <h2>1. 前提準備</h2>
+      <p class="panel-sub">Azure環境に接続する前に、以下をインストール・確認してください。</p>
+      <table>
+        <thead><tr><th scope="col">ツール</th><th scope="col">用途</th><th scope="col">インストール</th></tr></thead>
+        <tbody>
+          <tr><td>Azure CLI</td><td>Azure操作の基本ツール</td><td><a href="https://learn.microsoft.com/ja-jp/cli/azure/install-azure-cli">公式ガイド</a></td></tr>
+          <tr><td>PowerShell 5.1+</td><td>スクリプト実行（Windows標準搭載）</td><td>標準搭載</td></tr>
+          <tr><td>VS Code</td><td>コード編集・ターミナル</td><td><a href="https://code.visualstudio.com/">公式サイト</a></td></tr>
+          <tr><td>Git</td><td>ソース管理</td><td><a href="https://git-scm.com/">公式サイト</a></td></tr>
+          <tr><td>Docker Desktop</td><td>ローカルコンテナ開発（任意）</td><td><a href="https://www.docker.com/products/docker-desktop/">公式サイト</a></td></tr>
+        </tbody>
+      </table>
+      <div class="callout blue" style="margin-top:16px;">
+        <strong>社内ネットワーク上の注意</strong>
+        <p>プロキシ環境では Azure CLI のSSL検証が失敗する場合があります。<code>curl.exe</code> を使う場合は <code>--ssl-no-revoke</code> を付与してください。</p>
+      </div>
+    </section>
+
+    <!-- 2. Azure接続 -->
+    <section class="panel" id="login">
+      <h2>2. Azureへの接続</h2>
+      <p class="panel-sub">Azure CLIでログインし、正しいサブスクリプションに接続します。</p>
+
+      <h3>Step 1: ログイン</h3>
+      <pre>az login</pre>
+      <p style="color:var(--muted);font-size:14px;margin-top:8px;">ブラウザが開くので、社用アカウント（<code>@baycurrent.co.jp</code>）でサインインしてください。</p>
+
+      <h3>Step 2: サブスクリプション確認</h3>
+      <pre>az account show --query "{subscription:name, id:id, user:user.name}" -o table</pre>
+      <p style="color:var(--muted);font-size:14px;margin-top:8px;">以下が表示されれば正常です。</p>
+      <table>
+        <thead><tr><th scope="col">項目</th><th scope="col">期待値</th></tr></thead>
+        <tbody>
+          <tr><td>Subscription</td><td><code>MHC_mhc-2026-6621</code></td></tr>
+          <tr><td>User</td><td>あなたの <code>@baycurrent.co.jp</code> アドレス</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Step 3: サブスクリプションが違う場合</h3>
+      <pre>az account set --subscription "MHC_mhc-2026-6621"</pre>
+
+      <div class="callout amber" style="margin-top:16px;">
+        <strong>権限がない場合</strong>
+        <p>サブスクリプションが表示されない場合は、Azure管理者にContributor権限の付与を依頼してください。</p>
+      </div>
+    </section>
+
+    <!-- 3. 環境一覧 -->
+    <section class="panel" id="landscape">
+      <h2>3. 環境一覧</h2>
+      <p class="panel-sub">現在Azure上で稼働しているリソースグループとアプリの一覧です。</p>
+
+      <h3>リソースグループ</h3>
+      <table>
+        <thead><tr><th scope="col">Resource Group</th><th scope="col">用途</th><th scope="col">リージョン</th></tr></thead>
+        <tbody>
+          <tr><td><code>rg-mhc-nonprod-jpe</code></td><td>非本番アプリ（遊休資産管理 / エンベデットリースAPI）</td><td>Japan East</td></tr>
+          <tr><td><code>rg-mhc-prod-jpe</code></td><td>本番共有リソース</td><td>Japan East</td></tr>
+          <tr><td><code>rg-n8n-poc-jpe</code></td><td>n8n PoC</td><td>Japan East</td></tr>
+          <tr><td><code>rg-openproject-poc-jpe</code></td><td>OpenProject PoC</td><td>Japan East</td></tr>
+          <tr><td><code>rg-dify-poc-jpe</code></td><td>Dify PoC（VM）</td><td>Japan East</td></tr>
+          <tr><td><code>rg-aoai-sandbox-jpe</code></td><td>Azure OpenAI サンドボックス</td><td>Japan East</td></tr>
+          <tr><td><code>rg-lease-mini-nonprod-jpe</code></td><td>MINI_KIKAN 非本番</td><td>Japan East</td></tr>
+        </tbody>
+      </table>
+
+      <h3>主なContainer Apps</h3>
+      <table>
+        <thead><tr><th scope="col">アプリ</th><th scope="col">Container App名</th><th scope="col">URL</th></tr></thead>
+        <tbody>
+          <tr><td>遊休資産管理</td><td><code>ca-mhc-yushisan-np-0601</code></td><td><a href="https://ca-mhc-yushisan-np-0601.calmplant-b3a71e79.japaneast.azurecontainerapps.io">HTTPS</a></td></tr>
+          <tr><td>エンベデットリースAPI</td><td><code>ca-mhc-embeddedlease-np-0602</code></td><td><a href="https://ca-mhc-embeddedlease-np-0602.calmplant-b3a71e79.japaneast.azurecontainerapps.io">HTTPS</a></td></tr>
+          <tr><td>n8n</td><td><code>n8npoc-n8n</code></td><td><a href="https://n8npoc-n8n.agreeabletree-c051025c.japaneast.azurecontainerapps.io">HTTPS</a></td></tr>
+          <tr><td>OpenProject</td><td><code>opprjpoc-app</code></td><td><a href="https://opprjpoc-app.nicemushroom-4efefa02.japaneast.azurecontainerapps.io">HTTPS</a></td></tr>
+        </tbody>
+      </table>
+
+      <h3>その他</h3>
+      <table>
+        <thead><tr><th scope="col">サービス</th><th scope="col">URL / 備考</th></tr></thead>
+        <tbody>
+          <tr><td>Dify</td><td><a href="https://difypoc.japaneast.cloudapp.azure.com">https://difypoc.japaneast.cloudapp.azure.com</a>（Azure VM）</td></tr>
+          <tr><td>Azure OpenAI</td><td><code>https://aoai-sandbox-06161813.openai.azure.com/</code></td></tr>
+          <tr><td>Azure AI Foundry</td><td><a href="https://ai.azure.com">https://ai.azure.com</a></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout green" style="margin-top:16px;">
+        <strong>確認コマンド</strong>
+        <p>全Container Appの一覧はこのコマンドで取得できます。</p>
+        <pre>az containerapp list --query "[].{name:name, rg:resourceGroup, fqdn:properties.configuration.ingress.fqdn}" -o table</pre>
+      </div>
+    </section>
+
+    <!-- 4. デプロイ手順 -->
+    <section class="panel" id="deploy">
+      <h2>4. デプロイ手順（Container Apps）</h2>
+      <p class="panel-sub">この環境ではAzure Container Appsへのデプロイが基本です。ACRでビルドし、Container Appを更新します。</p>
+
+      <div class="step-grid">
+        <div class="step-card"><div class="num">1</div><h3>ACRでイメージビルド</h3><p>ローカルのDockerfileをAzure Container Registry（ACR）でクラウドビルドします。</p><pre>az acr build --registry &lt;ACR名&gt; --image &lt;イメージ:タグ&gt; --file Dockerfile .</pre></div>
+        <div class="step-card"><div class="num">2</div><h3>Container App更新</h3><p>ビルドしたイメージでContainer Appを更新します。</p><pre>az containerapp update --name &lt;App名&gt; --resource-group &lt;RG名&gt; --image &lt;ACR&gt;.azurecr.io/&lt;イメージ:タグ&gt;</pre></div>
+        <div class="step-card"><div class="num">3</div><h3>動作確認</h3><p>更新後にエンドポイントの応答を確認します。</p><pre>Invoke-WebRequest -Uri "https://&lt;FQDN&gt;" -UseBasicParsing</pre></div>
+      </div>
+
+      <h3>実例：遊休資産管理のデプロイ</h3>
+      <p class="panel-sub">既存スクリプトを使った手順です。</p>
+      <pre>Set-Location -LiteralPath "Z:\OneDrive - 株式会社ベイカレント\home\MHC\デジ戦企\Azure\scripts"
+
+.\deploy-yushisan-containerapp.ps1 `
+  -ResourceGroup "rg-mhc-nonprod-jpe" `
+  -AcrName "cad8c0d7e5b6acr" `
+  -ContainerAppName "ca-mhc-yushisan-np-0601" `
+  -EnvironmentName "cae-mhc-nonprod-jpe" `
+  -BasicAuthUsername "preview" `
+  -BasicAuthPassword "&lt;変更後のパスワード&gt;"</pre>
+
+      <div class="callout amber" style="margin-top:16px;">
+        <strong>Windows cp932ターミナルの注意</strong>
+        <p><code>az acr build</code> のログストリーミングでUnicodeエラーが出る場合は <code>--no-logs</code> を追加してください。</p>
+        <pre>az acr build --registry &lt;ACR名&gt; --image &lt;イメージ:タグ&gt; --no-logs .</pre>
+      </div>
+    </section>
+
+    <!-- 5. 命名規則 -->
+    <section class="panel" id="naming">
+      <h2>5. 命名規則</h2>
+      <p class="panel-sub">リソース作成時は以下の命名規則に従ってください。</p>
+      <table>
+        <thead><tr><th scope="col">リソース種別</th><th scope="col">形式</th><th scope="col">例</th></tr></thead>
+        <tbody>
+          <tr><td>Resource Group</td><td><code>rg-{service}-{env}-{region}</code></td><td><code>rg-mhc-nonprod-jpe</code></td></tr>
+          <tr><td>Container App</td><td><code>ca-{service}-{env}-{region}</code></td><td><code>ca-mhc-yushisan-np-0601</code></td></tr>
+          <tr><td>Container Registry</td><td><code>{prefix}acr</code></td><td><code>cad8c0d7e5b6acr</code></td></tr>
+          <tr><td>PostgreSQL</td><td><code>pg-{service}-{env}-{region}</code></td><td><code>n8npoc-pg-yj5dur</code></td></tr>
+          <tr><td>Key Vault</td><td><code>kv-{service}-{env}-{region}</code></td><td><code>n8npoc-kv-921294</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout blue" style="margin-top:16px;">
+        <strong>リージョン略称</strong>
+        <p><code>japaneast</code> → <code>jpe</code>、<code>japanwest</code> → <code>jpw</code> を使用します。</p>
+      </div>
+    </section>
+
+    <!-- 6. 守るルール -->
+    <section class="panel" id="rules">
+      <h2>6. 守るルール</h2>
+      <p class="panel-sub">Azure環境を安全に使うために、全メンバーが守るルールです。</p>
+      <div class="cols-2">
+        <div>
+          <h3>セキュリティ</h3>
+          <ul>
+            <li>APIキー、パスワード、Client Secret はチャット、Markdown、Git管理ファイルに書かない。</li>
+            <li>シークレットは Key Vault、Dify UI、Azure Portal に直接入力する。</li>
+            <li>キー取得コマンドは値を表示するため、画面共有・ログ保存に注意する。</li>
+            <li><code>az group delete</code>、NSG全公開、DB firewall全開放は事前確認する。</li>
+          </ul>
+        </div>
+        <div>
+          <h3>運用</h3>
+          <ul>
+            <li>リソース削除、スケール変更、公開範囲変更は関係者へ事前連絡する。</li>
+            <li>IaC/スクリプトを正本とし、ポータル手作業は緊急時のみ。</li>
+            <li>デプロイ後は必ずエンドポイントの動作確認を行う。</li>
+            <li>Docker Compose変更後は Dify 画面と API を確認する。</li>
+            <li><code>node_modules</code> やビルド成果物はローカルに溜めない。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout red" style="margin-top:16px;">
+        <strong>最重要ルール</strong>
+        <p>API Key、Azure OpenAI Key、パスワード、Token は、チャットや資料に絶対に記載しないでください。</p>
+      </div>
+    </section>
+
+    <!-- 7. トラブル時 -->
+    <section class="panel" id="trouble">
+      <h2>7. よくあるトラブルと対処</h2>
+      <p class="panel-sub">新規メンバーが遭遇しやすい問題です。</p>
+      <table>
+        <thead><tr><th scope="col">症状</th><th scope="col">原因</th><th scope="col">対処</th></tr></thead>
+        <tbody>
+          <tr><td><code>az login</code> 後にサブスクリプションが見えない</td><td>権限未付与</td><td>Azure管理者にContributor権限を依頼</td></tr>
+          <tr><td>Difyにつながらない</td><td>グローバルIPがNSG許可範囲外</td><td>自分のIPを確認し、インフラ担当へ連絡</td></tr>
+          <tr><td><code>az acr build</code> でUnicodeエラー</td><td>Windows cp932ターミナル</td><td><code>--no-logs</code> を追加</td></tr>
+          <tr><td>Container Appデプロイで<code>quota</code>エラー</td><td>VM SKUクォータ不足</td><td>別SKUを試すか管理者にクォータ増を依頼</td></tr>
+          <tr><td>Azure OpenAI が 401</td><td>Endpoint/Key/Auth Method不一致</td><td>正しいEndpointとAPI Keyを再確認</td></tr>
+          <tr><td><code>curl.exe</code> で証明書エラー</td><td>社内プロキシの失効確認</td><td><code>--ssl-no-revoke</code> を付与</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green" style="margin-top:16px;">
+        <strong>自分のグローバルIP確認</strong>
+        <pre>(Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content</pre>
+      </div>
+    </section>
+
+    <!-- 8. 参照資料 -->
+    <section class="panel" id="ref">
+      <h2>8. 参照資料</h2>
+      <p class="panel-sub">詳細が必要な場合はこちらを確認してください。</p>
+      <table>
+        <thead><tr><th scope="col">資料</th><th scope="col">場所</th><th scope="col">内容</th></tr></thead>
+        <tbody>
+          <tr><td>Azure・Dify 共通環境 利用案内</td><td><code>infra/Azure-Dify共通環境_利用案内.html</code></td><td>Dify/Azure OpenAI接続、秘密情報ルール、モデル一覧</td></tr>
+          <tr><td>Azure構築・運用標準</td><td><code>開発標準/03.インフラ・クラウド運用標準/Azure構築・運用標準.md</code></td><td>命名規則、CI/CD、セキュリティ標準の詳細</td></tr>
+          <tr><td>インフラ引き継ぎ</td><td><code>infra/INFRA_SESSION_HANDOFF.md</code></td><td>全リソースグループ、監視、NSG設定</td></tr>
+          <tr><td>Dify VMハンドオフ</td><td><code>infra/dify-azure-vm/AZURE_SESSION_HANDOFF.md</code></td><td>Dify VM構成、HTTPS、Docker Compose</td></tr>
+          <tr><td>Difyアプリ開発向け</td><td><code>infra/dify-azure-vm/DIFY_APP_DEVELOPMENT_HANDOFF.md</code></td><td>Difyアプリ作成、Azure OpenAI設定</td></tr>
+          <tr><td>遊休資産管理デプロイ</td><td><code>Azure/scripts/deploy-yushisan-containerapp.ps1</code></td><td>遊休資産管理のビルド・デプロイスクリプト</td></tr>
+          <tr><td>エンベデットリースデプロイ</td><td><code>Azure/scripts/deploy-embeddedlease-containerapp.ps1</code></td><td>エンベデットリースAPIのビルド・デプロイスクリプト</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="footer">
+      <a href="#" style="display:inline-block;margin-bottom:8px;color:var(--blue);font-weight:700">&#8593; ページ先頭へ戻る</a><br>
+      Azure 接続・デプロイ入門 / 新規メンバー向けオンボーディング資料
+    </footer>
+  </main>
+</body>
+</html>
